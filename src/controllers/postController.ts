@@ -3,19 +3,25 @@ import Post from "../models/postModel";
 import User from "../models/userModel";
 import { StatusCodes } from "http-status-codes";
 
+
 export const createPost = async (req: Request, res: Response) => {
     try {
-        const {userId, content, imageUrl, category, tags} = req.body;
+        const {userId, content, category, tags} = req.body;
+
+        // Split the tags string into an array of tags
+        const tagsArray = tags.split(',').map((tag: string) => tag.trim());
+
         const newPost = new Post({
             userId,
             content,
-            imageUrl,
+            imageUrl: req.file ? req.file.path : '',
             category,
-            tags
+            tags: tagsArray
         });
         await newPost.save();
         res.status(StatusCodes.CREATED).json({message: "Post created successfully"});
     } catch (error) {
+        console.log(error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: "Something went wrong"});
     }
 }
@@ -50,16 +56,40 @@ export const deletePost = async (req: Request, res: Response) => {
     }
 }
 
-export const savePost = async (req: Request, res: Response) => {
+
+
+export const updatePostLikes = async (req: Request, res: Response) => {
     try {
-        const post = await Post.findById(req.params.id);
+        const post = await Post.findById(req.params.id)
         if (!post) return res.status(StatusCodes.NOT_FOUND).json({message: "Post not found"});
         const user = await User.findById(req.body.userId);
         if (!user) return res.status(StatusCodes.NOT_FOUND).json({message: "User not found"});
-        if(user.savedPosts?.includes(req.params.id)) return res.status(StatusCodes.BAD_REQUEST).json({message: "Post already saved"});
-        user.savedPosts?.push(req.params.id);
+        if(user.likedPosts?.includes(req.params.id)) {
+            const index = user.likedPosts.indexOf(req.params.id);
+            user.likedPosts?.splice(index, 1);
+            const postIndex = post.likes.indexOf(req.body.userId);
+            post.likes.splice(postIndex, 1);
+            return res.json({message: "Post unliked successfully"});
+        }
+        user.likedPosts?.push(req.params.id);
+        post.likes.push(req.body.userId);
+        await post.save();
         await user.save();
-        res.json({message: "Post saved successfully"});
+        res.json({message: "Post liked successfully"});
+    } catch (error) {
+        res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: "Something went wrong"});
+    }
+}
+
+export const updatePostComments = async (req: Request, res: Response) => {
+    try {
+        const post = await Post.findById(req.params.id)
+        if (!post) return res.status(StatusCodes.NOT_FOUND).json({message: "Post not found"});
+        const user = await User.findById(req.body.userId);
+        if (!user) return res.status(StatusCodes.NOT_FOUND).json({message: "User not found"});
+        post.comments.push(req.body);
+        await post.save();
+        res.json({message: "Comment added successfully"});
     } catch (error) {
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: "Something went wrong"});
     }

@@ -15,7 +15,7 @@ interface IUser extends Document {
     githubLink?: string;
     tags?: string[];
     verified?: boolean;
-    savedPosts?: string[];
+    likedPosts?: string[];
 }
 
 const userSchema = new Schema({
@@ -66,23 +66,38 @@ const userSchema = new Schema({
     country: {
         type: String,
         default: "",
+        validate: {
+            validator: function(v: string) {
+                return /^[A-Za-z\s]+$/.test(v);
+            },
+            message: (props: { value: string }) => `${props.value} is not a valid country name!`
+        }
     },
-    githubLink: {
+      githubLink: {
         type: String,
         default: "",
-    },
+        validate: {
+          validator: function(v: string) {
+            return /^https?:\/\/github.com\/[A-Za-z0-9_-]+$/.test(v);
+          },
+          message: (props: { value: string }) => `${props.value} is not a valid GitHub profile URL!`
+        }
+      },
     tags: {
         type: [String],
         default: [],
+        validate: {
+            validator: function(v: string[]) {
+                return v.every(tag => /^[A-Za-z0-9_-]+$/.test(tag));
+            },
+            message: (props: { value: string[] }) => `${props.value.join(', ')} contains invalid tag(s)!`
+        }
     },
-    verified: {
-        type: Boolean,
-        default: false,
-    },
-    savedPosts: {
-        type: [String],
+      likedPosts: {
+        type: [Schema.Types.ObjectId],
         default: [],
-    },
+        ref: "Post"
+      },
 })
 
 const User = model<IUser>("User", userSchema);

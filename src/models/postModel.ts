@@ -34,14 +34,27 @@ interface IPost extends Document {
 }
 
 const postSchema = new Schema({
-  userId: { type: Schema.Types.ObjectId, ref: "User" },
-  content: { type: String, required: true },
-  imageUrl: { type: String },
-  likes: [{ type: Schema.Types.ObjectId, ref: "User" }],
+  userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+  content: { 
+    type: String, 
+    required: [true, 'Content is required'], 
+    minlength: [10, 'Content must be at least 10 characters long'],
+    maxlength: [500, 'Content cannot exceed 500 characters']
+  },
+  imageUrl: { 
+    type: String,
+    required: true
+  },
+  likes: [{ type: Schema.Types.ObjectId, ref: "User", default: [] }],
   comments: [
     {
-      userId: { type: Schema.Types.ObjectId, ref: "User" },
-      content: { type: String, required: true },
+      userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+      content: { 
+        type: String, 
+        required: true,
+        minlength: 1,
+        maxlength: 200
+      },
       timestamp: { type: Date, default: Date.now },
     },
   ],
@@ -62,14 +75,10 @@ const postSchema = new Schema({
       "Blockchain",
       "AR/VR",
       "IoT",
-      "Quantum Computing",
     ],
+    required: [true, 'Category is required']
   },
-  tags: {
-    type: [String],
-    required: true,
-  },
-  timestamp: { type: Date, default: Date.now },
+  tags: [{ type: String, required: false }],
 });
 
 const Post = model<IPost>("Post", postSchema);

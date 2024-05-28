@@ -91,7 +91,11 @@ export const login = async (req: Request, res: Response) => {
         .json({ message: "Invalid credentials" });
     const jwtSecret = process.env.JWT_SECRET || "";
     const token = jwt.sign({ id: user._id }, jwtSecret, { expiresIn: "24h" });
-    res.json({ token, user });
+    res.json({
+      token,
+      userID: user._id,
+      username: user.username
+    })
   } catch (error) {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)

@@ -7,6 +7,6 @@ const router = Router();
 
 router.post("/users", createUser)
 router.get("/users/:id", getUser, updateUser)
-router.post("login", login)
+router.post("/login", login)
 
 export default router;
