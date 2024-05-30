@@ -79,6 +79,7 @@ const postSchema = new Schema({
     required: [true, 'Category is required']
   },
   tags: [{ type: String, required: false }],
+  timestamp: { type: Date, default: Date.now },
 });
 
 const Post = model<IPost>("Post", postSchema);

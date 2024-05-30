@@ -10,7 +10,6 @@ export const createUser = async (req: Request, res: Response) => {
       username,
       email,
       password,
-      profilePicture,
       bio,
       country,
       githubLink,
@@ -21,15 +20,19 @@ export const createUser = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 12);
     let role = "user";
     if (email === process.env.ADMIN_EMAIL) role = "admin";
+
+    // Split the tags string into an array of tags
+    const tagsArray = tags.split(',').map((tag: string) => tag.trim());
+
     const newUser = new User({
       username,
       email,
       password: hashedPassword,
-      profilePicture,
+      profilePicture: req.file ? req.file.path : "",
       bio,
       country,
       githubLink,
-      tags,
+      tags: tagsArray,
       role,
     });
     await newUser.save();
@@ -65,8 +68,6 @@ export const updateUser = async (req: Request, res: Response) => {
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "User not found" });
-    if (req.body.password)
-      req.body.password = await bcrypt.hash(req.body.password, 12);
     await User.findByIdAndUpdate(req.params.id, { $set: req.body });
     res.json({ message: "User updated successfully" });
   } catch (error) {

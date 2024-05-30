@@ -83,16 +83,7 @@ const userSchema = new Schema({
           message: (props: { value: string }) => `${props.value} is not a valid GitHub profile URL!`
         }
       },
-    tags: {
-        type: [String],
-        default: [],
-        validate: {
-            validator: function(v: string[]) {
-                return v.every(tag => /^[A-Za-z0-9_-]+$/.test(tag));
-            },
-            message: (props: { value: string[] }) => `${props.value.join(', ')} contains invalid tag(s)!`
-        }
-    },
+      tags: [{ type: String, required: false }],
       likedPosts: {
         type: [Schema.Types.ObjectId],
         default: [],
