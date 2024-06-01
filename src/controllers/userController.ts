@@ -10,30 +10,18 @@ export const createUser = async (req: Request, res: Response) => {
       username,
       email,
       password,
-      bio,
-      country,
-      githubLink,
-      tags,
     } = req.body;
     const user = await User.findOne({ email });
     if (user) return res.status(400).json({ message: "User already exists" });
     const hashedPassword = await bcrypt.hash(password, 12);
-    let role = "user";
-    if (email === process.env.ADMIN_EMAIL) role = "admin";
-
-    // Split the tags string into an array of tags
-    const tagsArray = tags.split(',').map((tag: string) => tag.trim());
+    let isAdmin = false;
+    if (email === process.env.ADMIN_EMAIL) isAdmin = true;
 
     const newUser = new User({
       username,
       email,
       password: hashedPassword,
-      profilePicture: req.file ? req.file.path : "",
-      bio,
-      country,
-      githubLink,
-      tags: tagsArray,
-      role,
+      isAdmin,
     });
     await newUser.save();
     res
@@ -64,11 +52,17 @@ export const getUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   try {
     const user = await User.findById(req.params.id);
-    if (!user)
+    if (!user){
       return res
         .status(StatusCodes.NOT_FOUND)
         .json({ message: "User not found" });
-    await User.findByIdAndUpdate(req.params.id, { $set: req.body });
+    }
+    const {profilePicture, bio, country, tags } = req.body;
+    // Split the tags string into an array of tags
+    const tagsArray = tags.split(',').map((tag: string) => tag.trim());
+    req.body.tags = tagsArray;
+    const image = req.file ? req.file.path : profilePicture;
+    await User.findByIdAndUpdate(req.params.id, { ...req.body, profilePicture: image }, { new: true });
     res.json({ message: "User updated successfully" });
   } catch (error) {
     res
