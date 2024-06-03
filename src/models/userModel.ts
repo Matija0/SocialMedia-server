@@ -63,24 +63,26 @@ const userSchema = new Schema({
         type: String,
         default: new Date().toISOString(),
     },
-    country: {
+    githubLink: {
         type: String,
         default: "",
-        validate: {
-            validator: function(v: string) {
-                return /^[A-Za-z\s]+$/.test(v);
-            },
-            message: (props: { value: string }) => `${props.value} is not a valid country name!`
-        }
-    },
-      githubLink: {
-        type: String,
-        default: "",
+        required: false,
         validate: {
           validator: function(v: string) {
-            return /^https?:\/\/github.com\/[A-Za-z0-9_-]+$/.test(v);
+            return v === "" || /^https?:\/\/github.com\/[A-Za-z0-9_-]+$/.test(v);
           },
           message: (props: { value: string }) => `${props.value} is not a valid GitHub profile URL!`
+        }
+      },
+      country: {
+        type: String,
+        default: "",
+        required: false,
+        validate: {
+          validator: function(v: string) {
+            return v === "" || /^[A-Za-z\s]+$/.test(v);
+          },
+          message: (props: { value: string }) => `${props.value} is not a valid country name!`
         }
       },
       tags: [{ type: String, required: false }],

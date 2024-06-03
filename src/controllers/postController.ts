@@ -67,8 +67,10 @@ export const updatePostLikes = async (req: Request, res: Response) => {
         if(user.likedPosts?.includes(req.params.id)) {
             const index = user.likedPosts.indexOf(req.params.id);
             user.likedPosts?.splice(index, 1);
+            await user.save();
             const postIndex = post.likes.indexOf(req.body.userId);
             post.likes.splice(postIndex, 1);
+            await post.save();
             return res.json({message: "Post unliked successfully"});
         }
         user.likedPosts?.push(req.params.id);
@@ -77,6 +79,7 @@ export const updatePostLikes = async (req: Request, res: Response) => {
         await user.save();
         res.json({message: "Post liked successfully"});
     } catch (error) {
+        console.error(error);
         res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({message: "Something went wrong"});
     }
 }
